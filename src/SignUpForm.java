@@ -3,14 +3,23 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.awt.event.ActionEvent;
 
 public class SignUpForm extends JFrame {
@@ -41,10 +50,22 @@ public class SignUpForm extends JFrame {
 	/**
 	 * Create the frame.
 	 */
+	
+	Connection conn = null;
+	PreparedStatement pst = null;
+	ResultSet rs = null;
+	
 	public SignUpForm() {
+		
+		conn = MySQLConnection.conn();
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1000, 689);
+		
 		contentPane = new JPanel();
+		contentPane.setLayout(new BorderLayout());
+	    setLocationRelativeTo(null);
+		contentPane.setBackground(new Color(255, 255, 102));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setContentPane(contentPane);
@@ -91,27 +112,55 @@ public class SignUpForm extends JFrame {
 		btnLogIn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SignUpForm frame = new SignUpForm();
-				frame.dispose();	
+				frame.dispose();
+				LogForm login = new LogForm();
+				login = new LogForm();
+				login.setVisible(true);
+				login.setLocationRelativeTo(null);
+				dispose();
 			}
 		});
 		btnLogIn.setForeground(Color.WHITE);
-		btnLogIn.setFont(new Font("Sono ExtraBold", Font.PLAIN, 30));
+		btnLogIn.setFont(new Font("Sono ExtraBold", Font.PLAIN, 20));
 		btnLogIn.setBackground(new Color(128, 255, 0));
 		btnLogIn.setBounds(800, 516, 135, 46);
 		contentPane.add(btnLogIn);
 		
 		JButton btnSignUp = new JButton("Sign Up");
 		btnSignUp.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-				String username = txtusername.getText();
-				String email = txtemail.getText();
-				char [] password = txtpassword.getPassword();
-				
-				
-				
-			}
+		    public void actionPerformed(ActionEvent e) {
+		        String username = txtusername.getText();
+		        String email = txtemail.getText();
+		        char[] password = txtpassword.getPassword();
+		        char[] repassword = txtrepassword.getPassword();
+
+		        try {
+		            // Check if passwords match before inserting into the database
+		            if (Arrays.equals(password, repassword)) {
+		                pst = conn.prepareStatement("INSERT INTO users(username, email, password) VALUES(?, ?, ?)");
+		                pst.setString(1, username);
+		                pst.setString(2, email);
+		                pst.setString(3, String.valueOf(password));  // Assuming your password field in the database is a string
+
+		                pst.executeUpdate();
+
+		                JOptionPane.showMessageDialog(null, "Registration Successful!");
+		                
+		                txtusername.setText("");
+		                txtemail.setText("");
+		                txtpassword.setText("");
+		                txtrepassword.setText("");
+		                
+		            } else {
+		                JOptionPane.showMessageDialog(null, "Passwords do not match. Please re-enter.");
+		            }
+		        } catch (SQLException e1) {
+		            e1.printStackTrace();
+		            JOptionPane.showMessageDialog(null, "Error during registration. Please try again.");
+		        }
+		    }
 		});
+
 		btnSignUp.setForeground(Color.WHITE);
 		btnSignUp.setFont(new Font("Sono ExtraBold", Font.PLAIN, 30));
 		btnSignUp.setBackground(new Color(255, 153, 153));
